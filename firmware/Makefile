@@ -70,6 +70,9 @@ OBJS += protob/messages.pb.o
 OBJS += protob/storage.pb.o
 OBJS += protob/types.pb.o
 
+# define the code generation steps to be targets prior to compilation proper
+PRECOMPILE = coins_count.h coins_array.h make_protobuf
+
 include ../Makefile.include
 
 ifeq ($(FASTFLASH),1)
@@ -95,3 +98,20 @@ bootloader.o: ../fastflash/bootloader.bin
 		--redefine-sym _binary_$(shell echo -n "$<" | tr -c "[:alnum:]" "_")_size=__bootloader_size__ \
 		--rename-section .data=.rodata \
 		$< $@
+
+#################
+# Code Generation
+coins_count.h: coins-gen.py coins.json
+	./$< count > $@
+
+coins_array.h: coins-gen.py coins.json
+	./$< array > $@
+
+.PHONY: make_protobuf
+
+make_protobuf:
+	make -C protob
+
+clean::
+	rm -f coins_count.h coins_array.h
+	make -C protob clean
