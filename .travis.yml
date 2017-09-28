@@ -8,10 +8,25 @@ addons:
       - build-essential
       - gcc-arm-none-eabi
       - libnewlib-arm-none-eabi
+      - python-pip
+      - python3-pip
+
+install:
+  # need a fairly recent version of protobuf, 2.5.0 on Travis' trusty distro errors
+  - curl -OL https://github.com/google/protobuf/releases/download/v3.0.2/protoc-3.0.2-linux-x86_64.zip
+  - sudo unzip protoc-3.0.2-linux-x86_64.zip -d /tmp/protoc3
+  - sudo cp -rfv /tmp/protoc3/bin/protoc /usr/bin/protoc
+  - sudo cp -rfv /tmp/protoc3/include /usr/
+  - sudo chmod a+rx /usr/bin/protoc
+  - sudo find /usr/include -type d | sudo xargs chmod a+rx
+  - sudo find /usr/include -type f | sudo xargs chmod a+r
+  # wait until we've got protobuf before installing python protobuf
+  - sudo pip install protobuf
+  - sudo pip3 install protobuf
 
 env:
   global:
-    - MAKEFLAGS=-j2
+    - MAKEFLAGS=-j1
   matrix:
     - DEBUG_LINK=0 FASTFLASH=0
     - DEBUG_LINK=1 FASTFLASH=0
@@ -20,6 +35,7 @@ env:
 
 script:
   - make -C vendor/libopencm3 lib/stm32/f2
+  - make -C vendor/nanopb/generator/proto
   - make
   - make -C bootloader
   - make -C fastflash

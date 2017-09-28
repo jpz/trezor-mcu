@@ -1,3 +1,5 @@
+firmware/coins_array.h
+firmware/coins_count.h
 _attic/
 build/
 *.o
